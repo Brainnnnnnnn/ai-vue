@@ -13,6 +13,10 @@
                 
             </component>
         </el-form-item>
+        <el-form-item>
+            <el-button type="primary" @click="handleSearch">查询</el-button>
+            <el-button @click="handleReset">重置</el-button>
+        </el-form-item>
     </el-form>
 </template>
 
@@ -20,9 +24,8 @@
 
 import { reactive } from 'vue'
 
-const formData = reactive({})
 
-
+const emit = defineEmits(['Search'])
 
 const props = defineProps({
   formItem: {
@@ -31,10 +34,19 @@ const props = defineProps({
   }
 })
 
+
+const formData = reactive({})
 const isComp = (comp) => {
     return {
         input: 'el-input',
         select: 'el-select'
     }[comp]
+}
+
+const handleSearch = () => {
+    emit('Search', formData)
+}
+
+const handleReset = () => {
 }
 </script>

@@ -28,8 +28,8 @@ const formItem = [
   }]}
 ]
 
-const handleSearch = (data) => {
-  console.log(data)
+const handleSearch = (formData) => {
+  console.log(formData)
 }
 
 </script>
