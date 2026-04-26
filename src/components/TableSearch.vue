@@ -1,5 +1,5 @@
 <template>
-    <el-form :model="formData" >
+    <el-form :model="formData" ref="ruleFormRef">
         <el-row :gutter="24">
                 <template v-for="item in formItemAttr" :key="item.prop">
                     <el-col v-bind="item.col">
@@ -20,7 +20,7 @@
         </el-row>
         <el-row>
             <el-button type="primary" @click="handleSearch">查询</el-button>
-            <el-button @click="handleReset">重置</el-button>
+            <el-button @click="handleReset(ruleFormRef)">重置</el-button>
         </el-row>
         
     </el-form>
@@ -28,7 +28,7 @@
 
 <script setup>
 
-import { reactive ,computed} from 'vue'
+import { reactive ,computed, ref} from 'vue'
 
 
 const emit = defineEmits(['Search'])
@@ -65,7 +65,10 @@ const isComp = (comp) => {
 const handleSearch = () => {
     emit('Search', formData)
 }
-
-const handleReset = () => {
+const ruleFormRef = ref()
+const handleReset = (formEl) => {
+    if (!formEl) return
+    formEl.resetFields()
+    emit('Search', formData)
 }
 </script>
