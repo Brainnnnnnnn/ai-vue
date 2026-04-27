@@ -27,7 +27,7 @@ service.interceptors.response.use(
     response => {
         const {data, config} = response
         if (data.code === '200') {
-            return data
+            return data.data
         }else{
             if (data.code === '-1') {
                 if(!config.url?.includes('/login')){

@@ -40,6 +40,7 @@
 import { ref, reactive } from 'vue'
 import { login } from '@/api/login'
 
+
 const ruleFormRef = ref()
 const formData = reactive({
     username: '',
@@ -60,14 +61,12 @@ const handleLogin = async (formEl) => {
     if(!formEl) return
     await formEl.validate((valid,fields) => {
         if(valid) {
-            login(formData).then(res => {
-                console.log(res, '登录成功111')
-                if(!res.data.token){
+            login(formData).then(data => {
+                if(!data || !data.token){
                     return console.error('登录失败')
                 }
-                console.log(res, '登录成功')
-                localStorage.setItem('token', res.data.token)
-                localStorage.setItem('userInfo', JSON.stringify(res.data.userInfo))
+                localStorage.setItem('token', data.token)
+                localStorage.setItem('userInfo', JSON.stringify(data.userInfo))
             })
         } 
     })
