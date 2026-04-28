@@ -6,9 +6,36 @@
         <el-button type="primary">删除</el-button>
       </template>
     </PageHead>
-    <TableSearch :formItem = "formItem" @Search="handleSearch">
-
-    </TableSearch>
+    <TableSearch :formItem = "formItem" @Search="handleSearch" />
+    <el-table :data="tableData" style="width: 100%;margin-top: 25px;">
+      <el-table-column label="文章标题" fixed="left">
+        <template #default="scope">
+          <div style="display: flex; align-items: center">
+            <el-icon><timer /></el-icon>
+            <span>{{ scope.row.title }}</span>
+          </div>
+        </template>
+      </el-table-column>
+      <el-table-column label="分类" width="200">
+        <template #default="scope">
+          <div style="display: flex; align-items: center">
+            <el-icon><timer /></el-icon>
+            <span>{{ categoryMap[scope.row.categoryId] }}</span>
+          </div>
+        </template>
+      </el-table-column>
+      <el-table-column label="作者" property="authorName" width="200" />
+      <el-table-column label="阅读量" property="readCount" width="200" />
+      <el-table-column label="发布时间" property="publishedAt" width="200" />
+      <el-table-column label="操作" width="240"  fixed="right">
+        <template #default="scope">
+          <el-button text type="primary">编辑</el-button>
+          <el-button v-if="scope.row.status === 0 || scope.row.status === 2" text type="success">发布</el-button>
+          <el-button v-if="scope.row.status === 1" text type="warning">下线</el-button>
+          <el-button text type="danger">删除</el-button>
+        </template>
+      </el-table-column>
+    </el-table>
   </div>
 </template>
 
@@ -34,13 +61,27 @@ const formItem = [
   }]}
 ]
 
-const handleSearch = (formData) => {
-  console.log(formData)
+const pageParams = {
+  currentPage: 1,
+  size: 10
+}
+
+
+
+const handleSearch = async (formData) => {
+  const searchParams = {
+    ...formData,
+    ...pageParams
+  }
+  const {records, total} = await articlePage(searchParams)
+  tableData.value = records
 }
 // 分类映射
 const categoryMap = reactive({})
 // 分类处理
 const categories = ref([])
+// 列表数据
+const tableData = ref([])
 
 onMounted(async () => {
   const data = await categoryTree()
@@ -52,6 +93,9 @@ onMounted(async () => {
     }
   })
   formItem[1].options = categories.value
+
+  // 文章列表数据获取
+  handleSearch()
 })
 
 </script>
