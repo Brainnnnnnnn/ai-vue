@@ -36,6 +36,12 @@
         </template>
       </el-table-column>
     </el-table>
+    <el-pagination 
+      style="margin-top: 25px;"
+      @change="handleChange"
+      layout="prev, pager, next" 
+      :total="pageParams.total" 
+      :page-size="pageParams.size"/>
   </div>
 </template>
 
@@ -63,11 +69,17 @@ const formItem = [
 
 const pageParams = {
   currentPage: 1,
-  size: 10
+  size: 10,
+  total:5
 }
 
 
+const handleChange = (page) => {
+  pageParams.currentPage = page
+  handleSearch()
+}
 
+// 查询方法
 const handleSearch = async (formData) => {
   const searchParams = {
     ...formData,
@@ -75,6 +87,7 @@ const handleSearch = async (formData) => {
   }
   const {records, total} = await articlePage(searchParams)
   tableData.value = records
+  pageParams.total = total
 }
 // 分类映射
 const categoryMap = reactive({})
