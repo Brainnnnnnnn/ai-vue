@@ -41,7 +41,7 @@
       layout="prev, pager, next" 
       :total="pageParams.total" 
       :page-size="pageParams.size"/>
-    <ArticleDialog v-model:modelValue="dialogVisible"/>
+    <ArticleDialog v-model:modelValue="dialogVisible" :categories="categories"/>
       
   </div>
 </template>
