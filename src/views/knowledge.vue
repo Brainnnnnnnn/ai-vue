@@ -2,8 +2,7 @@
   <div >
     <PageHead title="知识文章">
       <template #buttons>
-        <el-button type="primary">新增</el-button>
-        <el-button type="primary">删除</el-button>
+        <el-button @click="dialogVisible = true" type="primary">新增</el-button>
       </template>
     </PageHead>
     <TableSearch :formItem = "formItem" @Search="handleSearch" />
@@ -42,6 +41,8 @@
       layout="prev, pager, next" 
       :total="pageParams.total" 
       :page-size="pageParams.size"/>
+    <ArticleDialog v-model:modelValue="dialogVisible"/>
+      
   </div>
 </template>
 
@@ -50,6 +51,7 @@ import PageHead from '@/components/PageHead.vue'
 import TableSearch from '@/components/TableSearch.vue'
 import { onMounted,reactive, ref } from 'vue'
 import { categoryTree, articlePage } from '@/api/login'
+import ArticleDialog from '@/components/ArticleDialog.vue'
 
 
 const formItem = [
@@ -73,6 +75,9 @@ const pageParams = {
   total:5
 }
 
+
+// 新增和编辑弹窗显示
+const dialogVisible = ref(false)
 
 const handleChange = (page) => {
   pageParams.currentPage = page
