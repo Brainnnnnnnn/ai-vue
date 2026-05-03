@@ -38,7 +38,7 @@
                         <img v-else :src="imgUrl" alt="封面图片" class="cover-image">
                     </el-upload>
                     <div v-if="imgUrl">
-                        <el-button type="danger" @click="deleteImg" size="mini">移除封面</el-button>
+                        <el-button type="danger" @click="deleteImg" >移除封面</el-button>
                     </div>
                 </div>
             </el-form-item>
@@ -53,16 +53,25 @@
                     />
             </el-form-item>
         </el-form>
-
+        <div v-if="btnPreview">
+            <h3>内容预览</h3>
+            <div v-html="formData.content"></div>
+        </div>
+        <template #footer>
+            <el-button @click="btnPreview = !btnPreview">{{ btnPreview ? "隐藏预览" : "预览效果" }}</el-button>
+            <el-button @click="handleClose">取消</el-button>
+            <el-button @click="handleSubmit" :loading="loading">创建文章</el-button>
+        </template>
     </el-dialog>
 </template>
 
 <script setup>
 import { ElMessage } from 'element-plus'
 import { computed,ref,reactive } from 'vue'
-import { fileUpload } from '@/api/login'
+import { fileUpload, createArticle } from '@/api/login'
 import { fileBaseUrl } from '@/config/index.js'
 import RichTextEditor from '@/components/RichTextEditor.vue'
+import { login } from '../api/login'
 
 // form
 
@@ -89,7 +98,7 @@ const props = defineProps({
     }
 })
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'success'])
 const dialogVisible = computed({
     get() {
         return props.modelValue
@@ -108,7 +117,11 @@ const rules = reactive({
     ],
     categoryId: [
         { required: true, message: '请选择分类' ,trigger:'blur'}
-    ]
+    ],
+    content: [
+        { required: true, message: '请输入文章内容' ,trigger:'blur'},
+        { min:1, max:5000, message: '文章内容不可超过5000字符', trigger:'blur'}
+    ],
 })
 
 // 文章标签
@@ -141,7 +154,7 @@ const handleUploadRequest = async ({ file }) => {
     })
     
     imgUrl.value = fileBaseUrl + imgRes.filePath
-    formData.coverImage = imgRes.filePath
+    formData.value.coverImage = imgRes.filePath
     console.log(imgUrl.value)
 }
 
@@ -151,12 +164,45 @@ const deleteImg = () => {
 }
 
 // 富文本相关
-const handleContentChange = () => {
-
+const handleContentChange = ({ html }) => {
+    formData.content = html
 }
 
-const handleEditorCreated = () => {}
+const handleEditorCreated = (editor) => {
+    if(formData.content) {
+        editor.setHtml(formData.content)
+    }
+}
 
+// 预览
+const btnPreview = ref(false)
+
+
+// 创建文章
+const formRef = ref()
+const loading = ref(false)
+const handleSubmit = () => {
+    formRef.value.validate((valid, fields) => {
+        if(valid){
+            loading.value = true
+        }else{
+            return
+        }
+        // console.log(formData.value, 'formData')
+        const submitData = {
+            ...formData.value,
+            tags: formData.value.tagArray.join(',')
+        }
+        delete submitData.tagArray
+
+        console.log(submitData, 'submitData')
+        createArticle(submitData).then(res => {
+            loading.value = false
+            emit('success')
+        })
+
+    })
+}
 </script>
 
 

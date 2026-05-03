@@ -25,7 +25,7 @@
       </el-table-column>
       <el-table-column label="作者" property="authorName" width="200" />
       <el-table-column label="阅读量" property="readCount" width="200" />
-      <el-table-column label="发布时间" property="publishedAt" width="200" />
+      <el-table-column label="发布时间" property="updatedAt" width="200" />
       <el-table-column label="操作" width="240"  fixed="right">
         <template #default="scope">
           <el-button text type="primary">编辑</el-button>
@@ -41,7 +41,7 @@
       layout="prev, pager, next" 
       :total="pageParams.total" 
       :page-size="pageParams.size"/>
-    <ArticleDialog v-model:modelValue="dialogVisible" :categories="categories"/>
+    <ArticleDialog v-model:modelValue="dialogVisible" :categories="categories" :success="handleSuccess"/>
       
   </div>
 </template>
@@ -115,5 +115,7 @@ onMounted(async () => {
   // 文章列表数据获取
   handleSearch()
 })
+
+const handleSuccess = () => {}
 
 </script>
