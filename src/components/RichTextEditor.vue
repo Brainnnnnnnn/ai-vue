@@ -203,7 +203,7 @@ const handleEditorCreated = (editor) => {
 }
 
 const handleEditorChange = (editor) => {
-  updateCharCount()
+  updateCharCount() 
   
   // 触发变更事件
   emit('change', {
