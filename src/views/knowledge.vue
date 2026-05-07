@@ -2,7 +2,7 @@
   <div >
     <PageHead title="知识文章">
       <template #buttons>
-        <el-button @click="dialogVisible = true" type="primary">新增</el-button>
+        <el-button @click="handleEdit(null)" type="primary">新增</el-button>
       </template>
     </PageHead>
     <TableSearch :formItem = "formItem" @Search="handleSearch" />
@@ -28,7 +28,7 @@
       <el-table-column label="发布时间" property="updatedAt" width="200" />
       <el-table-column label="操作" width="240"  fixed="right">
         <template #default="scope">
-          <el-button text type="primary">编辑</el-button>
+          <el-button text @click="handleEdit(scope.row.id)" type="primary">编辑</el-button>
           <el-button v-if="scope.row.status === 0 || scope.row.status === 2" text type="success">发布</el-button>
           <el-button v-if="scope.row.status === 1" text type="warning">下线</el-button>
           <el-button text type="danger">删除</el-button>
@@ -41,7 +41,7 @@
       layout="prev, pager, next" 
       :total="pageParams.total" 
       :page-size="pageParams.size"/>
-    <ArticleDialog v-model:modelValue="dialogVisible" :categories="categories" :success="handleSuccess"/>
+    <ArticleDialog v-model:modelValue="dialogVisible" :article="currentArticle" :categories="categories" :success="handleSuccess"/>
       
   </div>
 </template>
@@ -50,7 +50,7 @@
 import PageHead from '@/components/PageHead.vue'
 import TableSearch from '@/components/TableSearch.vue'
 import { onMounted,reactive, ref } from 'vue'
-import { categoryTree, articlePage } from '@/api/login'
+import { categoryTree, articlePage, getArticleDetail } from '@/api/login'
 import ArticleDialog from '@/components/ArticleDialog.vue'
 
 
@@ -78,6 +78,22 @@ const pageParams = {
 
 // 新增和编辑弹窗显示
 const dialogVisible = ref(false)
+
+const currentArticle = ref(null)
+const handleEdit = (id) => {
+  if(!id){
+    currentArticle.value = null
+    dialogVisible.value = true
+  }
+  else{
+    getArticleDetail(id).then(res => {
+      currentArticle.value = res
+      dialogVisible.value = true
+    })
+  }
+  
+}
+
 
 const handleChange = (page) => {
   pageParams.currentPage = page

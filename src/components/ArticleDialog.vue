@@ -1,6 +1,6 @@
 <template>
     <el-dialog
-        title="文章详情"
+        :title="isEdit ? '编辑数据' : '新增文章'"
         v-model="dialogVisible"
         width="50%"
         @close="handleClose"
@@ -60,18 +60,18 @@
         <template #footer>
             <el-button @click="btnPreview = !btnPreview">{{ btnPreview ? "隐藏预览" : "预览效果" }}</el-button>
             <el-button @click="handleClose">取消</el-button>
-            <el-button @click="handleSubmit" :loading="loading">创建文章</el-button>
+            <el-button @click="handleSubmit" :loading="loading">{{ isEdit ? "更新文章" : "新增文章" }}</el-button>
         </template>
     </el-dialog>
 </template>
 
 <script setup>
 import { ElMessage } from 'element-plus'
-import { computed,ref,reactive } from 'vue'
+import { computed,ref,reactive, watch, nextTick } from 'vue'
 import { fileUpload, createArticle } from '@/api/login'
 import { fileBaseUrl } from '@/config/index.js'
 import RichTextEditor from '@/components/RichTextEditor.vue'
-import { login } from '../api/login'
+
 
 // form
 
@@ -79,7 +79,7 @@ const formData = ref({
     "title": "",
     "content": "",
     "coverImage": "",
-    "categoryId": 1,
+    "categoryId": "",
     "summary": "",
     "tags": "",
     "id": ""
@@ -95,6 +95,25 @@ const props = defineProps({
     categories: {
         type:Array,
         default:() => []
+    },
+    article: {
+        type: Object,
+        default: null
+    }
+})
+
+const isEdit = computed(() => !!props.article?.id)
+
+// 监听编辑数据
+watch(() => props.article, (newVal) => {
+    if(newVal){
+        nextTick(() => {
+            console.log(newVal)
+            Object.assign(formData.value, newVal)
+            imgUrl.value = fileBaseUrl + newVal.coverImage
+            console.log(imgUrl.value)
+        })
+        
     }
 })
 
@@ -108,7 +127,19 @@ const dialogVisible = computed({
     }
 })
 
-const handleClose = () => {}
+const handleClose = () => {
+    // 重置表单
+    formRef.value.resetFields()
+    // 重置ID
+    businessId.value = null
+    // 重置标签
+    formData.tagArray = []
+    // 重置封面图片和数据
+    deleteImg()
+    // 重置父组件的数据
+    emit('update:modelValue', false)
+
+}
 
 const rules = reactive({
     title: [
@@ -145,12 +176,12 @@ const beforeUpload = (file) => {
     }
     return true
 }
-
+const businessId = ref(null)
 const handleUploadRequest = async ({ file }) => {
-    const uuid = crypto.randomUUID()
+    businessId.value = crypto.randomUUID()
 
     const imgRes = await fileUpload(file, {
-        businessId: uuid
+        businessId: businessId.value
     })
     
     imgUrl.value = fileBaseUrl + imgRes.filePath
