@@ -44,6 +44,7 @@
             </el-form-item>
             <el-form-item label="文章内容" prop="content">
                 <RichTextEditor
+                    :key="editorKey"
                     v-model="formData.content"
                     placeholder="请输入文件内容，支持富文本"
                     :maxCharCount="5000"
@@ -60,7 +61,7 @@
         <template #footer>
             <el-button @click="btnPreview = !btnPreview">{{ btnPreview ? "隐藏预览" : "预览效果" }}</el-button>
             <el-button @click="handleClose">取消</el-button>
-            <el-button @click="handleSubmit" :loading="loading">{{ isEdit ? "更新文章" : "新增文章" }}</el-button>
+            <el-button @click="handleSubmit" type="primary" :loading="loading">{{ isEdit ? "更新文章" : "新增文章" }}</el-button>
         </template>
     </el-dialog>
 </template>
@@ -68,23 +69,34 @@
 <script setup>
 import { ElMessage } from 'element-plus'
 import { computed,ref,reactive, watch, nextTick } from 'vue'
-import { fileUpload, createArticle } from '@/api/login'
+import { fileUpload, createArticle, updateArticle } from '@/api/login'
 import { fileBaseUrl } from '@/config/index.js'
 import RichTextEditor from '@/components/RichTextEditor.vue'
 
 
 // form
 
-const formData = ref({
-    "title": "",
-    "content": "",
-    "coverImage": "",
-    "categoryId": "",
-    "summary": "",
-    "tags": "",
-    "id": ""
+const defaultFormData = () => ({
+    title: "",
+    content: "",
+    coverImage: "",
+    categoryId: "",
+    summary: "",
+    tags: "",
+    id: "",
+    tagArray: []
 })
 
+const formData = reactive(defaultFormData())
+
+const resetForm = () => {
+
+    Object.assign(formData, defaultFormData())
+
+    // imgUrl.value = ''
+
+    formRef.value?.clearValidate()
+}
 
 
 const props = defineProps({
@@ -105,17 +117,49 @@ const props = defineProps({
 const isEdit = computed(() => !!props.article?.id)
 
 // 监听编辑数据
-watch(() => props.article, (newVal) => {
-    if(newVal){
-        nextTick(() => {
-            console.log(newVal)
-            Object.assign(formData.value, newVal)
-            imgUrl.value = fileBaseUrl + newVal.coverImage
-            console.log(imgUrl.value)
-        })
+// watch(() => props.article, (newVal) => {
+//     if(newVal){
+//         nextTick(() => {
+//             console.log(newVal)
+
+
+//             Object.assign(formData, {
+//                 ...newVal,
+//                 tagArray: newVal.tags ? newVal.tags.split(',') : []
+//             })
+//             imgUrl.value = newVal.coverImage ? fileBaseUrl + newVal.coverImage : ''
+//         })
         
+//     }
+// })
+
+watch(
+    () => props.article,
+    (newVal) => {
+
+        console.log(newVal)
+
+        if(newVal){
+
+            Object.assign(formData, {
+                ...newVal,
+                tagArray: typeof newVal.tags === 'string'
+                    ? newVal.tags.split(',')
+                    : []
+            })
+
+            imgUrl.value = newVal.coverImage
+                ? fileBaseUrl + newVal.coverImage
+                : ''
+
+        } else {
+
+            resetForm()
+
+        }
+
     }
-})
+)
 
 const emit = defineEmits(['update:modelValue', 'success'])
 const dialogVisible = computed({
@@ -128,8 +172,14 @@ const dialogVisible = computed({
 })
 
 const handleClose = () => {
+    editorRef.value?.destroy()
+
+    editorRef.value = null
+
+    editorKey.value++
+
     // 重置表单
-    formRef.value.resetFields()
+    resetForm()
     // 重置ID
     businessId.value = null
     // 重置标签
@@ -185,7 +235,7 @@ const handleUploadRequest = async ({ file }) => {
     })
     
     imgUrl.value = fileBaseUrl + imgRes.filePath
-    formData.value.coverImage = imgRes.filePath
+    formData.coverImage = imgRes.filePath
     console.log(imgUrl.value)
 }
 
@@ -199,7 +249,11 @@ const handleContentChange = ({ html }) => {
     formData.content = html
 }
 
+const editorRef = ref(null)
+const editorKey = ref(0)
 const handleEditorCreated = (editor) => {
+    editorRef.value = editor
+
     if(formData.content) {
         editor.setHtml(formData.content)
     }
@@ -219,18 +273,29 @@ const handleSubmit = () => {
         }else{
             return
         }
-        // console.log(formData.value, 'formData')
+        // console.log(formData, 'formData')
         const submitData = {
-            ...formData.value,
-            tags: formData.value.tagArray.join(',')
+            ...formData,
+            tags: formData.tagArray.join(',')
         }
         delete submitData.tagArray
 
-        console.log(submitData, 'submitData')
-        createArticle(submitData).then(res => {
-            loading.value = false
-            emit('success')
-        })
+        if(!isEdit.value){
+            // 新增
+            createArticle(submitData).then(res => {
+                loading.value = false
+                emit('success')
+            })
+        }else{
+            // 编辑
+            updateArticle(submitData.id, submitData).then(res => {
+                loading.value = false
+                emit('success')
+            })
+        }
+
+
+        
 
     })
 }

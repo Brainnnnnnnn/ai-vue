@@ -41,7 +41,7 @@
       layout="prev, pager, next" 
       :total="pageParams.total" 
       :page-size="pageParams.size"/>
-    <ArticleDialog v-model:modelValue="dialogVisible" :article="currentArticle" :categories="categories" :success="handleSuccess"/>
+    <ArticleDialog v-model:modelValue="dialogVisible" :article="currentArticle" :categories="categories" @success="handleSuccess"/>
       
   </div>
 </template>
@@ -132,6 +132,10 @@ onMounted(async () => {
   handleSearch()
 })
 
-const handleSuccess = () => {}
+const handleSuccess = () => {
+  dialogVisible.value = false
+  // 刷新数据
+  handleSearch()
+}
 
 </script>
